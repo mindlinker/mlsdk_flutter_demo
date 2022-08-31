@@ -49,7 +49,7 @@ class _JoinMeetingPageWidget extends State<JoinMeetingPage> {
     }
 
     SmartDialog.showLoading();
-    MeetingResult result = await MlsdkFlutter.joinMeeting(_meetingNo, _nickName, "")
+    MeetingResult result = await MLApi.joinMeeting(_meetingNo, _nickName, "")
     .whenComplete(() => SmartDialog.dismiss());
 
     if(result.code == 0 || result.code == 9997) {

@@ -24,7 +24,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   var _textFieldName = "chenjianrun";
-  final _mlsdkFlutterPlugin = MlsdkFlutter();
   var _identifier = "";
   TextEditingController? _controller;
 
@@ -72,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
     SmartDialog.showLoading();
     _deviceDetails()
         .then((value) => AuthCode.getAuthCode(_textFieldName, "", _identifier))
-        .then((authCode) => MlsdkFlutter.authenticate(authCode, _textFieldName, ""))
+        .then((authCode) => MLApi.authenticate(authCode, _textFieldName, ""))
         .then((result) => {
       if(result.code == 0) {
         Navigator.of(context).pushNamed(homePage, arguments: _textFieldName),

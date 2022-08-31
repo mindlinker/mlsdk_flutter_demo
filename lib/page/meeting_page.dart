@@ -28,7 +28,7 @@ class _MeetingPageWidget extends State<MeetingPage> {
     super.initState();
     _initData();
 
-    MlsdkFlutter.onMeetingStateListener(userJoinCallback: (member) {
+    MLApi.onMeetingStateListener(userJoinCallback: (member) {
       print(
           "PlatformSurfaceView onUserJoin _otherUuid=${member.uid} name=${member.name}");
       if (!member.isSelf) {
@@ -51,7 +51,7 @@ class _MeetingPageWidget extends State<MeetingPage> {
   }
 
   _initData() async {
-    members = await MlsdkFlutter.getMeetingMembers();
+    members = await MLApi.getMeetingMembers();
     print("PlatformSurfaceView initdata members=$members");
     var list1 = members.where((element) => element.isSelf);
     if (list1.isNotEmpty) {
@@ -152,7 +152,7 @@ class _MeetingPageWidget extends State<MeetingPage> {
                     TextButton(
                       child: const Text("是"),
                       onPressed: () {
-                        MlsdkFlutter.quitMeeting(_meetingRoom.sessionId!);
+                        MLApi.quitMeeting(_meetingRoom.sessionId!);
                         _localController?.unsubscribeVideo();
                         //关闭对话框并返回true
                         Navigator.of(context).pop(true);

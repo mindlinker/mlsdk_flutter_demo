@@ -11,18 +11,19 @@ Mindlinker meeting Flutter 插件项目
 ## pubspec.yaml
 ```groovy
 dependencies:
-  mlsdk_flutter: ^1.0.0-beta.1  # 迈聆会议
+mlsdk_flutter: ^1.0.0-beta.2  # 迈聆会议
 ```
+
 ## 初始化SDK
 ### 功能介绍
-SDK 初始化调用 MlsdkFlutter.init(option) 就可以进行 sdk 的初始化。
+SDK 初始化调用 MLApi.init(option) 就可以进行 sdk 的初始化。
 
 ### 示例代码
 ```dart
 Future<MLResult> initMLSdk() async{
     MLOption option = MLOption(Constrant.serverUrl, Constrant.logPath,
     enableConsoleLog: true, enableLog: true);
-    return MlsdkFlutter.init(option);
+    return MLApi.init(option);
 }
 ```
 
@@ -45,7 +46,7 @@ MLResult 创建会议结果回调
 
 ## 获取AuthCode
 ### 功能介绍
-AuthCode 根据 JWT 协议生成的，后续 [登录授权](#登录授权) 需要传给 MlsdkFlutter.authenticate，目的是为了校验 APP 的身份，[了解 AuthCode](https://www.mindlinker.com/doc/rest-api/apis/auth/auth-code.html)
+AuthCode 根据 JWT 协议生成的，后续 [登录授权](#登录授权) 需要传给 MLApi.authenticate，目的是为了校验 APP 的身份，[了解 AuthCode](https://www.mindlinker.com/doc/rest-api/apis/auth/auth-code.html)
 
 ### 示例代码
 ::: warning
@@ -59,7 +60,7 @@ dependencies:
 
 ```dart
     // todo: 正式版的话，为了安全起见，appkey 和 appSecret 是保存在后台服务器的，这个 AuthCode 是由后台返回给到客户端的，
-//  客户端这边拿到 authCode 之后传给 MlsdkFlutter.authenticate，进行账号登录和验证
+//  客户端这边拿到 authCode 之后传给 MLApi.authenticate，进行账号登录和验证
 class AuthCode {
 
     static String getAuthCode(String nickname, String avatar, String openId) {
@@ -91,7 +92,7 @@ class AuthCode {
 ## 登录授权
 
 ### 功能介绍
-在完成 [初始化 SDK](#初始化sdk) 调用和 [获取 AuthCode](#获取authcode) 后需要进行 sdk 登录授权，授权成功后就可以创建会议和加入会议了，具体调用如下 Api MlsdkFlutter.authenticate 进行
+在完成 [初始化 SDK](#初始化sdk) 调用和 [获取 AuthCode](#获取authcode) 后需要进行 sdk 登录授权，授权成功后就可以创建会议和加入会议了，具体调用如下 Api MLApi.authenticate 进行
 
 ```dart
 Future<AuthenticateResult> authenticate(String authCode, String nickName, String avatar) async
@@ -103,7 +104,7 @@ Future<AuthenticateResult> authenticate(String authCode, String nickName, String
     SmartDialog.showLoading();
     _deviceDetails()
         .then((value) => AuthCode.getAuthCode(_textFieldName, "", _identifier))     // 获取 AuthCode
-    .then((authCode) => MlsdkFlutter.authenticate(authCode, _textFieldName, ""))    // 授权登录
+    .then((authCode) => MLApi.authenticate(authCode, _textFieldName, ""))    // 授权登录
     .then((result) => {
     if(result.code == 0) {  // 授权成功
         Navigator.of(context).pushNamed(homePage, arguments: _textFieldName),
@@ -137,7 +138,7 @@ AuthenticateResult
 
 ## 创建会议
 ### 功能介绍
-创建会议，使用 Api 是：MlsdkFlutter.createMeeting()，结果回调：MeetingResult
+创建会议，使用 Api 是：MLApi.createMeeting()，结果回调：MeetingResult
 ```dart
 Future<MeetingResult> createMeeting(
     String nickName, 
@@ -149,7 +150,7 @@ Future<MeetingResult> createMeeting(
 ```dart
   Future<void> createMeeting(CreateMeetingCallback onSuccess) async {
     SmartDialog.showLoading();
-    MeetingResult result = await MlsdkFlutter.createMeeting(_nickName, "")
+    MeetingResult result = await MLApi.createMeeting(_nickName, "")
         .whenComplete(() => SmartDialog.dismiss());
     MeetingRoom? meetingRoom = result.meetingRoom;
     if(result.code == 0 || result.code == 9997) {
@@ -169,7 +170,7 @@ Future<MeetingResult> createMeeting(
 
 
 ### 参数说明
-MlsdkFlutter.createMeeting
+MLApi.createMeeting
 
 | 参数名称 | 参数类型 | 是否必填 | 参数描述 |
 | --- | --- | --- | --- |
@@ -201,7 +202,7 @@ MeetingResult 创建会议结果回调
 
 ## 加入会议
 ### 功能介绍
-创建会议，使用 Api 是：MlsdkFlutter.joinMeeting()，结果回调：MeetingResult
+创建会议，使用 Api 是：MLApi.joinMeeting()，结果回调：MeetingResult
 ```dart
 Future<MeetingResult> joinMeeting(
     String meetingNo,
@@ -224,7 +225,7 @@ Future<MeetingResult> joinMeeting(
       }
     
       SmartDialog.showLoading();
-      MeetingResult result = await MlsdkFlutter.joinMeeting(
+      MeetingResult result = await MLApi.joinMeeting(
           _meetingNo, _nickName, "",)
           .whenComplete(() => SmartDialog.dismiss());
     
@@ -240,7 +241,7 @@ Future<MeetingResult> joinMeeting(
 
 
 ### 参数说明
-MlsdkFlutter.joinMeeting
+MLApi.joinMeeting
 
 | 参数名称 | 参数类型 | 是否必填 | 参数描述 |
 | --- | --- | --- | --- |
@@ -346,12 +347,12 @@ MeetingResult 加入会议结果回调
 | createdCallback | MLSurfaceViewCreatedCallback | 否 | MLSurfaceView 创建成功回调，会返回一个 MLSurfaceviewController |
 
 - MLSurfaceviewController
-    - subscribeVideo：订阅视频
-    - unsubscribeVideo：取消订阅
+  - subscribeVideo：订阅视频
+  - unsubscribeVideo：取消订阅
 
 ## 退出会议
 ### 功能介绍
-离开会议，可以调用 MlsdkFlutter.quitMeeting(),  sessionId 为房间的唯一标识符，创建房间或者加入房间成功后会返回该参数。
+离开会议，可以调用 MLApi.quitMeeting(),  sessionId 为房间的唯一标识符，创建房间或者加入房间成功后会返回该参数。
 
 ```dart
 Future<MLResult> quitMeeting(String sessionId) async
@@ -380,7 +381,7 @@ Future<MLResult> quitMeeting(String sessionId) async
                       TextButton(
                         child: const Text("是"),
                         onPressed: () {
-                          MlsdkFlutter.quitMeeting(_meetingRoom.sessionId!);
+                          MLApi.quitMeeting(_meetingRoom.sessionId!);
                           _localController?.unsubscribeVideo();
                           //关闭对话框并返回true
                           Navigator.of(context).pop(true);
@@ -412,7 +413,7 @@ MLResult 退出会议结果回调
 
 ## 获取参会人列表
 ### 功能介绍
-获取参会人列表，可以调用 MlsdkFlutter.getMeetingMembers(),  需要在创建会议/进入会议成功之后调用，否则返回空列表
+获取参会人列表，可以调用 MLApi.getMeetingMembers(),  需要在创建会议/进入会议成功之后调用，否则返回空列表
 
 ```dart
 Future<List<Member>> getMeetingMembers() async
@@ -421,7 +422,7 @@ Future<List<Member>> getMeetingMembers() async
 ### 示例代码
 ```dart
     _initData() async {
-      members = await MlsdkFlutter.getMeetingMembers();
+      members = await MLApi.getMeetingMembers();
       var list1 = members.where((element) => element.isSelf);
       if (list1.isNotEmpty) {
         setState(() {
@@ -456,7 +457,7 @@ Member 参会人信息
 
 ## 会议状态监听
 ### 功能介绍
-创建会议/加入会议成功之后，可以调用 MlsdkFlutter.onMeetingStateListener() 监听用户入会、用户例会已经会议结束的状态
+创建会议/加入会议成功之后，可以调用 MLApi.onMeetingStateListener() 监听用户入会、用户例会已经会议结束的状态
 
 ```dart
 static onMeetingStateListener(
@@ -471,7 +472,7 @@ typedef MeetingEndCallback = void Function(String meetingNo); // 会议结束
 
 ### 示例代码
 ```dart
-    MlsdkFlutter.onMeetingStateListener(
+    MLApi.onMeetingStateListener(
         userJoinCallback: (member) {
           if (!member.isSelf) {
             setState(() {
@@ -492,6 +493,7 @@ typedef MeetingEndCallback = void Function(String meetingNo); // 会议结束
         })
     );
 ```
+
 
 ## 错误码对照表
 

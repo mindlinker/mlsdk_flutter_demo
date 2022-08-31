@@ -25,7 +25,7 @@ void main() async{
 Future<MLResult> initMLSdk() async{
   MLOption option = MLOption(Constants.serverUrl, Constants.logPath,
       enableConsoleLog: true, enableLog: true);
-  return MlsdkFlutter.init(option);
+  return MLApi.init(option);
 }
 
 class MyApp extends StatefulWidget {

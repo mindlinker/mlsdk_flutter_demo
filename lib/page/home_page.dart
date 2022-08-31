@@ -46,7 +46,7 @@ class _HomePageWidget extends State<HomePage> {
 
   Future<void> createMeeting(CreateMeetingCallback onSuccess) async {
     SmartDialog.showLoading();
-    MeetingResult result = await MlsdkFlutter.createMeeting(_nickName, "")
+    MeetingResult result = await MLApi.createMeeting(_nickName, "")
         .whenComplete(() => SmartDialog.dismiss());
     MeetingRoom? meetingRoom = result.meetingRoom;
     if(result.code == 0 || result.code == 9997) {
@@ -93,7 +93,7 @@ class _HomePageWidget extends State<HomePage> {
   Future<void> joinMeetingRoom(String roomNo, CreateMeetingCallback onSuccess) async {
     SmartDialog.showLoading();
 
-    MeetingResult result = await MlsdkFlutter.joinMeeting(roomNo, _nickName, "",)
+    MeetingResult result = await MLApi.joinMeeting(roomNo, _nickName, "",)
     .whenComplete(() => SmartDialog.dismiss());
 
     if(result.code == 0 || result.code == 9997) {
