@@ -11,7 +11,7 @@ Mindlinker meeting Flutter 插件项目
 ## pubspec.yaml
 ```groovy
 dependencies:
-mlsdk_flutter: ^1.0.0-beta.2  # 迈聆会议
+mlsdk_flutter: ^1.0.0-beta.3  # 迈聆会议
 ```
 
 ## 初始化SDK
@@ -174,8 +174,8 @@ MLApi.createMeeting
 
 | 参数名称 | 参数类型 | 是否必填 | 参数描述 |
 | --- | --- | --- | --- |
-| nickName | String | 是 | 入会用户名称 |
-| avatar | String | 是 | 用户头像 |
+| nickName | String | 否 | 入会用户名称 |
+| avatar | String | 否 | 用户头像 |
 | topic | String | 否 | 房间名称 |
 
 
@@ -246,9 +246,9 @@ MLApi.joinMeeting
 | 参数名称 | 参数类型 | 是否必填 | 参数描述 |
 | --- | --- | --- | --- |
 | meetingNo | String | 是 | 房间号 |
-| nickName | String | 是 | 入会用户名称 |
-| avatar | String | 是 | 用户头像 |
-| password | String | 是 | 入会密码 |
+| nickName | String | 否 | 入会用户名称 |
+| avatar | String | 否 | 用户头像 |
+| password | String | 否 | 入会密码 |
 
 
 
@@ -461,9 +461,9 @@ Member 参会人信息
 
 ```dart
 static onMeetingStateListener(
-      {required UserJoinCallback userJoinCallback,
-        required UserLeaveCallback? userLeaveCallback,
-        required MeetingEndCallback? meetingEndCallback});
+        {required UserJoinCallback userJoinCallback,
+          required UserLeaveCallback? userLeaveCallback,
+          required MeetingEndCallback? meetingEndCallback});
 
 typedef UserJoinCallback = void Function(Member room);        // 用户入会
 typedef UserLeaveCallback = void Function(Member room);       // 用户离会
@@ -473,25 +473,25 @@ typedef MeetingEndCallback = void Function(String meetingNo); // 会议结束
 ### 示例代码
 ```dart
     MLApi.onMeetingStateListener(
-        userJoinCallback: (member) {
-          if (!member.isSelf) {
-            setState(() {
-              _otherUuid = member.uid;
-            });
-            Fluttertoast.showToast(msg: "${member.name} 加入会议");
-          }
-        }, userLeaveCallback: (member) {
-          if (!member.isSelf) {
-            setState(() {
-              _otherUuid = "";
-            });
-          }
-          Fluttertoast.showToast(msg: "${member.name} 离开会议");
-        }, meetingEndCallback: ((meetingNo) {
-          Fluttertoast.showToast(msg: "$meetingNo 会议已结束");
-          Navigator.of(context).pop();
-        })
-    );
+userJoinCallback: (member) {
+if (!member.isSelf) {
+setState(() {
+_otherUuid = member.uid;
+});
+Fluttertoast.showToast(msg: "${member.name} 加入会议");
+}
+}, userLeaveCallback: (member) {
+if (!member.isSelf) {
+setState(() {
+_otherUuid = "";
+});
+}
+Fluttertoast.showToast(msg: "${member.name} 离开会议");
+}, meetingEndCallback: ((meetingNo) {
+Fluttertoast.showToast(msg: "$meetingNo 会议已结束");
+Navigator.of(context).pop();
+})
+);
 ```
 
 

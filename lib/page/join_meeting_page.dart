@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -20,8 +19,6 @@ class JoinMeetingPage extends StatefulWidget {
 typedef JoinMeetingCallback = void Function(MeetingRoom room);
 
 class _JoinMeetingPageWidget extends State<JoinMeetingPage> {
-  var _switchValueMicrophone = true;
-  var _switchValueVideo = true;
   var _meetingNo = "";
   var _nickName = "";
   TextEditingController? _controller;
@@ -49,14 +46,57 @@ class _JoinMeetingPageWidget extends State<JoinMeetingPage> {
     }
 
     SmartDialog.showLoading();
-    MeetingResult result = await MLApi.joinMeeting(_meetingNo, _nickName, "")
+    MeetingResult result = await MLApi.joinMeeting(_meetingNo, nickname: _nickName)
     .whenComplete(() => SmartDialog.dismiss());
 
     if(result.code == 0 || result.code == 9997) {
       if(result.meetingRoom != null) {
         onSuccess.call(result.meetingRoom!);
       }
+    } else {
+      Fluttertoast.showToast(msg: result.message);
     }
+  }
+
+  _addMeetingConnectListener() {
+    MLApi.onMeetingConnectListener(
+        reconnectingCallback: () {
+          Fluttertoast.showToast(msg: "reconnectingCallback");
+        },
+        disconnectedCallback: () {
+          Navigator.of(context).pop();
+          showDisconnect(context);
+        });
+  }
+
+  showDisconnect(BuildContext buildContext) {
+    // 检测到您已掉线，是否立即重新加入房间?
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("温馨提示"),
+          content: const Text("检测到您已掉线，是否立即重新加入房间?"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("暂不加入"),
+              onPressed: () => Navigator.of(context).pop(), // 关闭对话框
+            ),
+            TextButton(
+              child: const Text("重新加入"),
+              onPressed: () {
+                joinMeetingRoom((room) {
+                  _addMeetingConnectListener();
+                  Navigator.of(buildContext).pushNamed(meetingPage, arguments: room);
+                });
+                //关闭对话框并返回true
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 
@@ -254,6 +294,7 @@ class _JoinMeetingPageWidget extends State<JoinMeetingPage> {
                     onPressed: () {
                       closeKeyboard(context);
                       joinMeetingRoom((room) {
+                        _addMeetingConnectListener();
                         Navigator.of(context).pushNamed(meetingPage, arguments: room);
                       });
                       // Navigator.of(context).pushNamed(homePage);

@@ -1,8 +1,5 @@
-import 'dart:ffi';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mlsdk_flutter/mlsdk_flutter.dart';
@@ -26,7 +23,7 @@ class _HomePageWidget extends State<HomePage> {
   var _dayOfWeek = "周三";
   var _date = "2021年1月";
   var _nickName = "";
-  var _identifier = "";
+  MeetingRoom? _meetingRoom;
 
   @override
   void initState() {
@@ -46,19 +43,21 @@ class _HomePageWidget extends State<HomePage> {
 
   Future<void> createMeeting(CreateMeetingCallback onSuccess) async {
     SmartDialog.showLoading();
-    MeetingResult result = await MLApi.createMeeting(_nickName, "")
-        .whenComplete(() => SmartDialog.dismiss());
-    MeetingRoom? meetingRoom = result.meetingRoom;
-    if(result.code == 0 || result.code == 9997) {
-      if(result.meetingRoom != null) {
+    MeetingResult result = await MLApi.createMeeting().whenComplete(() => SmartDialog.dismiss());
+    _meetingRoom = result.meetingRoom;
+    if (result.code == 0 || result.code == 9997) {
+      if (result.meetingRoom != null) {
         onSuccess.call(result.meetingRoom!);
       }
-    } else if(result.code == 403103014) {
+    } else if (result.code == 403103014) {
       // 会议室已经存在
       Fluttertoast.showToast(msg: "会议室已经存在");
-      if(meetingRoom != null) {
-        showJoinDialog(meetingRoom.roomNo, meetingRoom.sessionId, onSuccess);
+      if (_meetingRoom != null) {
+        showJoinDialog(
+            _meetingRoom!.roomNo, _meetingRoom!.sessionId, onSuccess);
       }
+    } else {
+      Fluttertoast.showToast(msg: result.message);
     }
   }
 
@@ -89,17 +88,60 @@ class _HomePageWidget extends State<HomePage> {
     );
   }
 
+  _addMeetingConnectListener() {
+    MLApi.onMeetingConnectListener(
+        reconnectingCallback: () {
+          Fluttertoast.showToast(msg: "reconnectingCallback");
+        },
+        disconnectedCallback: () {
+          Navigator.of(context).pop();
+          showDisconnect(context);
+        });
+  }
+
+  // 检测到您已掉线，是否立即重新加入房间?
+  showDisconnect(BuildContext buildContext) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("温馨提示"),
+          content: const Text("检测到您已掉线，是否立即重新加入房间?"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("暂不加入"),
+              onPressed: () => Navigator.of(context).pop(), // 关闭对话框
+            ),
+            TextButton(
+              child: const Text("重新加入"),
+              onPressed: () {
+                joinMeetingRoom(_meetingRoom!.roomNo, (room) {
+                  _addMeetingConnectListener();
+                  Navigator.of(buildContext).pushNamed(meetingPage, arguments: room);
+                });
+                //关闭对话框并返回true
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<void> joinMeetingRoom(String roomNo, CreateMeetingCallback onSuccess) async {
     SmartDialog.showLoading();
 
-    MeetingResult result = await MLApi.joinMeeting(roomNo, _nickName, "",)
+    MeetingResult result = await MLApi.joinMeeting(roomNo, nickname: _nickName)
     .whenComplete(() => SmartDialog.dismiss());
 
     if(result.code == 0 || result.code == 9997) {
       if(result.meetingRoom != null) {
         onSuccess.call(result.meetingRoom!);
       }
+    } else {
+      Fluttertoast.showToast(msg: result.message);
     }
   }
 
@@ -167,6 +209,7 @@ class _HomePageWidget extends State<HomePage> {
           TextButton(
             onPressed: () {
               createMeeting((room) {
+                _addMeetingConnectListener();
                 Navigator.of(context).pushNamed(meetingPage, arguments: room);
               });
             },

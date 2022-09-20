@@ -24,6 +24,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   var _textFieldName = "chenjianrun";
+  final _mlsdkFlutterPlugin = MLApi();
   var _identifier = "";
   TextEditingController? _controller;
 
@@ -73,12 +74,12 @@ class _LoginPageState extends State<LoginPage> {
         .then((value) => AuthCode.getAuthCode(_textFieldName, "", _identifier))
         .then((authCode) => MLApi.authenticate(authCode, _textFieldName, ""))
         .then((result) => {
-      if(result.code == 0) {
-        Navigator.of(context).pushNamed(homePage, arguments: _textFieldName),
-        Fluttertoast.showToast(msg: "authience success")
-      } else {
-        Fluttertoast.showToast(msg: "code=${result.code} msg=${result.message}")
-      }
+          if(result.code == 0) {
+            Navigator.of(context).pushNamed(homePage, arguments: _textFieldName),
+            Fluttertoast.showToast(msg: "authience success")
+          } else {
+              Fluttertoast.showToast(msg: "code=${result.code} msg=${result.message}")
+          }
     }).whenComplete(() => {
       SmartDialog.dismiss()
     });

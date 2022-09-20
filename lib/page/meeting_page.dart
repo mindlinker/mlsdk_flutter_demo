@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mlsdk_flutter/mlsdk_flutter.dart';
 import 'package:mlsdk_flutter/mlsdk_flutter_method_channel.dart';
 
 import '../constants/MLColor.dart';
+import 'home_page.dart';
 
 class MeetingPage extends StatefulWidget {
   const MeetingPage({Key? key}) : super(key: key);
@@ -28,6 +30,7 @@ class _MeetingPageWidget extends State<MeetingPage> {
     super.initState();
     _initData();
 
+
     MLApi.onMeetingStateListener(userJoinCallback: (member) {
       print(
           "PlatformSurfaceView onUserJoin _otherUuid=${member.uid} name=${member.name}");
@@ -37,18 +40,64 @@ class _MeetingPageWidget extends State<MeetingPage> {
         });
         Fluttertoast.showToast(msg: "${member.name} 加入会议");
       }
-    }, userLeaveCallback: (member) {
-      if (!member.isSelf) {
+    }, userLeaveCallback: (uuid) {
+      if(uuid == _otherUuid) {
         setState(() {
           _otherUuid = "";
         });
+        Fluttertoast.showToast(msg: "$uuid 离开会议");
       }
-      Fluttertoast.showToast(msg: "${member.name} 离开会议");
     }, meetingEndCallback: ((meetingNo) {
       Fluttertoast.showToast(msg: "$meetingNo 会议已结束");
       Navigator.of(context).pop();
-    }));
+    }), disconnectedCallback: () {
+      debugPrint("disconnectedCallback");
+      Navigator.of(context).pop();
+    });
   }
+
+  showDisconnect() {
+    // 检测到您已掉线，是否立即重新加入房间?
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("温馨提示"),
+          content: const Text("检测到您已掉线，是否立即重新加入房间?"),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("暂不加入"),
+              onPressed: () => Navigator.of(context).pop(), // 关闭对话框
+            ),
+            TextButton(
+              child: const Text("重新加入"),
+              onPressed: () {
+                joinMeetingRoom(_meetingRoom!.roomNo, (room) {
+
+                });
+                //关闭对话框并返回true
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> joinMeetingRoom(String roomNo, CreateMeetingCallback onSuccess) async {
+    SmartDialog.showLoading();
+
+    MeetingResult result = await MLApi.joinMeeting(roomNo)
+        .whenComplete(() => SmartDialog.dismiss());
+
+    if(result.code == 0 || result.code == 9997) {
+      if(result.meetingRoom != null) {
+        onSuccess.call(result.meetingRoom!);
+      }
+    }
+  }
+
 
   _initData() async {
     members = await MLApi.getMeetingMembers();
@@ -152,7 +201,7 @@ class _MeetingPageWidget extends State<MeetingPage> {
                     TextButton(
                       child: const Text("是"),
                       onPressed: () {
-                        MLApi.quitMeeting(_meetingRoom.sessionId!);
+                        MLApi.quitMeeting();
                         _localController?.unsubscribeVideo();
                         //关闭对话框并返回true
                         Navigator.of(context).pop(true);
